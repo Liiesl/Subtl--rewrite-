@@ -1,5 +1,10 @@
 # styles.py
 
+import os
+import inspect
+import importlib.util
+from tool_manager import AVAILABLE_TOOLS
+
 # Dictionary to hold color values for different themes
 COLORS = {
     'dark': {
@@ -49,12 +54,44 @@ COLORS = {
     }
 }
 
+def get_tool_stylesheets(colors):
+    """
+    Dynamically finds, imports, and gets the stylesheet for each available tool.
+    """
+    tool_styles = []
+    for tool_id, tool_data in AVAILABLE_TOOLS.items():
+        widget_class = tool_data['widget_class']
+        try:
+            # Find the directory of the tool's widget class file
+            class_file_path = inspect.getfile(widget_class)
+            class_dir = os.path.dirname(class_file_path)
+            
+            # The stylesheet is in a '{tool_id}_styles.py' file in the same directory
+            style_module_path = os.path.join(class_dir, f'{tool_id}_styles.py')
+
+            if os.path.exists(style_module_path):
+                # Dynamically import the module from its file path
+                spec = importlib.util.spec_from_file_location(f"tools.{tool_id}.styles", style_module_path)
+                style_module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(style_module)
+                
+                # Check if the module has the required function
+                if hasattr(style_module, 'get_stylesheet'):
+                    # Call the function and append the returned style string
+                    style_string = style_module.get_stylesheet(colors)
+                    tool_styles.append(style_string)
+        except Exception as e:
+            # This allows the main app to run even if a tool's style is missing/broken
+            print(f"Warning: Could not load stylesheet for '{tool_id}': {e}")
+            
+    return "\n".join(tool_styles)
+
 def get_stylesheet(theme='dark'):
     """Returns the stylesheet for the application based on the selected theme."""
     colors = COLORS.get(theme, COLORS['dark']) # Default to dark theme if not found
     
-    # Use an f-string to inject the theme colors into the stylesheet
-    return f"""
+    # The main stylesheet string
+    main_stylesheet = f"""
         /* Style the custom title bar and the tab bar within it for a unified background.
            Using a descendant selector (CustomTitleBar QTabBar) makes the rule more specific. */
         CustomTitleBar, CustomTitleBar QTabBar {{
@@ -68,8 +105,6 @@ def get_stylesheet(theme='dark'):
             background-color: {colors["widget_background"]};
             border-radius: 20px;
         }}
-
-        /* Pane style is no longer needed as we don't use QTabWidget's pane directly */
         
         /* Style for individual tabs within the custom title bar */
         CustomTitleBar QTabBar::tab {{
@@ -157,3 +192,6 @@ def get_stylesheet(theme='dark'):
             color: {colors["text_color"]};
         }}
     """
+    
+    # Append the dynamically loaded tool-specific styles
+    return main_stylesheet + "\n" + get_tool_stylesheets(colors)

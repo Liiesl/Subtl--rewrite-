@@ -41,7 +41,7 @@ class SubtitleToolUI(QMainWindow):
         
         self.resizer = WindowResizer(self)
         
-        self.setStyleSheet(get_stylesheet('contrast'))
+        self.setStyleSheet(get_stylesheet('dark'))
         
         # Open the initial tab via the manager
         self.tab_manager.open_new_dashboard_tab()

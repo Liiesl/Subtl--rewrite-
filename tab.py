@@ -6,7 +6,7 @@ from PySide6.QtCore import QObject, Qt
 import qtawesome as qta
 
 from tool_manager import AVAILABLE_TOOLS
-from tools.placeholder_tool import PlaceholderTool
+from tools.placeholder_tool.placeholder_tool import PlaceholderTool
 
 class DraggableTabBar(QTabBar):
     """

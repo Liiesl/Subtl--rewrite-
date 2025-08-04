@@ -1,4 +1,4 @@
-# tools/min_length_tool.py
+# tools/min_length/min_length_tool.py
 
 import srt
 import os
@@ -9,6 +9,13 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
+# Each tool now defines its own properties, which the tool_manager will read.
+TOOL_DEFINITION = {
+    "display_name": "📏 Minimum Length",
+    "description": "Adjust the minimum display time of subtitles.",
+    "widget_class_name": "MinLengthTool"  # The name of the main class in this file
+}
+
 class MinLengthTool(QWidget):
     """
     UI widget for the Minimum Length tool.
@@ -16,6 +23,9 @@ class MinLengthTool(QWidget):
     def __init__(self):
         super().__init__()
         self.input_file_path = None
+        
+        # Add a property to identify this as a tool widget for styling
+        self.setProperty("class", "tool-widget")
 
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -25,13 +35,9 @@ class MinLengthTool(QWidget):
         file_select_button.clicked.connect(self.select_file)
         self.file_path_label = QLabel("No file selected.")
         self.file_path_label.setWordWrap(True)
-
-        # Description
-        description_label = QLabel(
-            "Set the minimum display time for a subtitle entry."
-        )
-
-        # Min length input widgets
+        # Set an object name for specific styling
+        self.file_path_label.setObjectName("file_path_label")
+        description_label = QLabel(TOOL_DEFINITION["description"])
         min_length_layout = QHBoxLayout()
         self.min_length_input = QSpinBox()
         self.min_length_input.setRange(1, 10000)
@@ -90,10 +96,7 @@ class MinLengthTool(QWidget):
 
         try:
             with open(self.input_file_path, 'r', encoding='utf-8-sig') as f:
-                subtitle_generator = srt.parse(f.read())
-                subtitles = list(subtitle_generator)
-
-            # Apply the minimum duration logic
+                subtitles = list(srt.parse(f.read()))
             for sub in subtitles:
                 duration = sub.end - sub.start
                 if duration < min_duration:

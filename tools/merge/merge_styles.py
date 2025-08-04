@@ -1,0 +1,17 @@
+# tools/merge/styles.py
+
+def get_stylesheet(colors):
+    """
+    Returns the stylesheet for the MergeTool placeholder.
+    'colors' is a dictionary of the current theme's colors, available for future use.
+    """
+    return f"""
+        /* --- Styles for MergeTool Placeholder --- */
+
+        MergeTool #placeholder_label {{
+            font-size: 18px;
+            qproperty-alignment: 'AlignCenter';
+            font-weight: bold;
+            color: {colors["label_text"]};
+        }}
+    """

@@ -1,51 +1,53 @@
 # tool_manager.py
 
-from tools.min_length_tool import MinLengthTool
-from tools.placeholder_tool import PlaceholderTool
+import os
+import importlib
 
-"""
-The single source of truth for all available tools in the application.
+def load_tools():
+    """
+    Dynamically discovers and loads all available tools from the 'tools' directory.
 
-Each key is a unique identifier for the tool.
-The value is a dictionary containing:
-    - 'display_name': The user-facing name for the tool.
-    - 'widget_class': The class responsible for creating the tool's UI.
-    - 'description': A brief description for the dashboard (optional).
-"""
-AVAILABLE_TOOLS = {
-    "min_length": {
-        "display_name": "📏 Minimum Length",
-        "widget_class": MinLengthTool,
-        "description": "Adjust the minimum display time of subtitles.",
-    },
-    "max_length": {
-        "display_name": "📏 Maximum Length",
-        "widget_class": PlaceholderTool,
-        "description": "Adjust the maximum display time of subtitles.",
-    },
-    "merge": {
-        "display_name": "🔗 Merge Lines",
-        "widget_class": PlaceholderTool,
-        "description": "Combine multiple subtitle lines into one.",
-    },
-    "split": {
-        "display_name": "✂️ Split Lines",
-        "widget_class": PlaceholderTool,
-        "description": "Split long subtitle lines into two.",
-    },
-    "subtitle_shifter": {
-        "display_name": "⏰ Subtitle Shifter",
-        "widget_class": PlaceholderTool,
-        "description": "Shift subtitle timings forwards or backwards.",
-    },
-    "subtitle_converter": {
-        "display_name": "🔄 Subtitle Converter",
-        "widget_class": PlaceholderTool,
-        "description": "Convert subtitles to various formats.",
-    },
-    "multilingual_merge": {
-        "display_name": "🌍 Multilingual Merge",
-        "widget_class": PlaceholderTool,
-        "description": "Merge subtitles from different languages.",
-    },
-}
+    Each tool is expected to be in its own subdirectory and contain a Python file
+    that defines a 'TOOL_DEFINITION' dictionary. The manager reads this definition
+    to get the display name, description, and widget class for the tool.
+
+    This approach makes the system plug-and-play: to add a new tool, simply
+    add a new folder with the required files, and it will be loaded automatically.
+    """
+    loaded_tools = {}
+    tools_dir = os.path.dirname(__file__)
+
+    # Iterate through subdirectories in the 'tools' folder
+    for tool_id in os.listdir(os.path.join(tools_dir, 'tools')):
+        tool_dir = os.path.join(tools_dir, 'tools', tool_id)
+        if os.path.isdir(tool_dir) and not tool_id.startswith('__'):
+            try:
+                # The module name is assumed to be the same as the folder name (tool_id)
+                module_name = f"tools.{tool_id}.{tool_id}"
+                module = importlib.import_module(module_name)
+                
+                # Each tool module must provide its own definition
+                if hasattr(module, 'TOOL_DEFINITION'):
+                    definition = module.TOOL_DEFINITION
+                    
+                    # Get the widget class from the loaded module
+                    widget_class = getattr(module, definition['widget_class_name'])
+                    
+                    # Populate the dictionary entry for the tool
+                    loaded_tools[tool_id] = {
+                        "display_name": definition['display_name'],
+                        "widget_class": widget_class,
+                        "description": definition.get('description', ''),
+                    }
+                else:
+                    print(f"Warning: Tool '{tool_id}' is missing a 'TOOL_DEFINITION'.")
+
+            except ImportError as e:
+                print(f"Warning: Could not import module for tool '{tool_id}': {e}")
+            except (AttributeError, KeyError) as e:
+                print(f"Warning: Tool '{tool_id}' has a misconfigured definition: {e}")
+
+    return loaded_tools
+
+# The single source of truth, now populated entirely at runtime.
+AVAILABLE_TOOLS = load_tools()
