@@ -4,8 +4,8 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PySide6.QtCore import Qt
 
 TOOL_DEFINITION = {
-    "display_name": "✂️ placeholder for future tool",
-    "description": "This is a placeholder for a future tool.",
+    "display_name": "✂️ coming soon",
+    "description": "This tool is a placeholder for future development.",
     "widget_class_name": "PlaceholderTool"
 }
 

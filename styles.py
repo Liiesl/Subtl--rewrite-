@@ -5,193 +5,245 @@ import inspect
 import importlib.util
 from tool_manager import AVAILABLE_TOOLS
 
-# Dictionary to hold color values for different themes
-COLORS = {
-    'dark': {
-        "widget_background": "#1b1b1b",
-        "title_bar_background": "#2c2c2c",
-        "text_color": "#ecf0f1",
-        "tab_selected_background": "#1b1b1b",
-        "tab_selected_text": "#ffffff",
-        "label_text": "#ecf0f1",
-        "button_background": "#555555",
-        "button_text": "#ffffff",
-        "button_hover": "#666666",
-        "spinbox_border": "#555555",
-        "titlebar_button_background": "transparent",
-        "titlebar_button_hover": "#4f4f4f",
-        "close_button_hover": "#e74c3c",
-    },
-    'light': {
-        "widget_background": "#ffffff",
-        "title_bar_background": "#d2d7db",
-        "text_color": "#2c3e50",
-        "tab_selected_background": "#ffffff",
-        "tab_selected_text": "#2c3e50",
-        "label_text": "#2c3e50",
-        "button_background": "#3498db",
-        "button_text": "white",
-        "button_hover": "#2980b9",
-        "spinbox_border": "#95a5a6",
-        "titlebar_button_background": "transparent",
-        "titlebar_button_hover": "#bdc3c7",
-        "close_button_hover": "#e74c3c",
-    },
-    'contrast': {
-        "widget_background": "yellow",              # Main content area
-        "title_bar_background": "magenta",          # Title bar and inactive tabs
-        "text_color": "black",                      # Text on inactive tabs
-        "tab_selected_background": "lime",          # Active tab background
-        "tab_selected_text": "red",                 # Active tab text
-        "label_text": "blue",                       # Label text color
-        "button_background": "orange",              # Regular button background
-        "button_text": "purple",                    # Regular button text
-        "button_hover": "cyan",                     # Regular button hover
-        "spinbox_border": "green",                  # Spinbox border
-        "titlebar_button_background": "turquoise",  # Title bar button background
-        "titlebar_button_hover": "navy",            # Title bar button hover
-        "close_button_hover": "red",                # Close button hover
-    }
-}
-
-def get_tool_stylesheets(colors):
+class StyleManager:
     """
-    Dynamically finds, imports, and gets the stylesheet for each available tool.
+    Manages the application's visual styles, including themes and fonts.
+    
+    The color scheme is structured hierarchically:
+    - bg_primary, bg_secondary, bg_tertiary: Background colors.
+    - text_primary, text_accent, text_active: Text colors for different contexts.
+    - accent_primary, accent_hover, accent_subtle_hover: Interactive element colors.
+    - accent_close: Specific color for the close button's hover state.
+    - border_color: Color for borders and separators.
     """
-    tool_styles = []
-    for tool_id, tool_data in AVAILABLE_TOOLS.items():
-        widget_class = tool_data['widget_class']
-        try:
-            # Find the directory of the tool's widget class file
-            class_file_path = inspect.getfile(widget_class)
-            class_dir = os.path.dirname(class_file_path)
-            
-            # The stylesheet is in a '{tool_id}_styles.py' file in the same directory
-            style_module_path = os.path.join(class_dir, f'{tool_id}_styles.py')
+    def __init__(self, initial_theme='dark', initial_font_size=14):
+        self.themes = {
+            'dark': {
+                "bg_primary": "#1b1b1b",
+                "bg_secondary": "#2c2c2c",
+                "bg_tertiary": "#3a3a3a",
+                "text_primary": "#ecf0f1",
+                "text_accent": "#ffffff",
+                "text_active": "#ffffff",
+                "accent_primary": "#555555",
+                "accent_hover": "#666666",
+                "accent_subtle_hover": "#4f4f4f",
+                "accent_close": "#e74c3c",
+                "border_color": "#555555",
+            },
+            'light': {
+                "bg_primary": "#ffffff",
+                "bg_secondary": "#d2d7db",
+                "bg_tertiary": "#f0f0f0",
+                "text_primary": "#2c3e50",
+                "text_accent": "#ffffff",
+                "text_active": "#2c3e50",
+                "accent_primary": "#3498db",
+                "accent_hover": "#2980b9",
+                "accent_subtle_hover": "#bdc3c7",
+                "accent_close": "#e74c3c",
+                "border_color": "#95a5a6",
+            },
+            'contrast': {
+                "bg_primary": "yellow",
+                "bg_secondary": "magenta",
+                "bg_tertiary": "black",
+                "text_primary": "blue",
+                "text_accent": "purple",
+                "text_active": "red",
+                "accent_primary": "orange",
+                "accent_hover": "cyan",
+                "accent_subtle_hover": "purple",
+                "accent_close": "red",
+                "border_color": "green",
+            }
+        }
+        self.current_theme = initial_theme
+        self.font_size = int(initial_font_size)
 
-            if os.path.exists(style_module_path):
-                # Dynamically import the module from its file path
-                spec = importlib.util.spec_from_file_location(f"tools.{tool_id}.styles", style_module_path)
-                style_module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(style_module)
+    def set_style_properties(self, theme=None, font_size=None):
+        """Sets the current theme and/or font size."""
+        if theme and theme in self.themes:
+            self.current_theme = theme
+        if font_size is not None:
+            self.font_size = int(font_size)
+
+    def get_available_themes(self):
+        """Returns a list of available theme names."""
+        return list(self.themes.keys())
+
+    def _get_tool_stylesheets(self, colors):
+        """
+        Dynamically finds, imports, and gets the stylesheet for each available tool.
+        Note: This change to the color dictionary is a breaking change for external tool stylesheets.
+        """
+        tool_styles = []
+        for tool_id, tool_data in AVAILABLE_TOOLS.items():
+            widget_class = tool_data['widget_class']
+            try:
+                class_file_path = inspect.getfile(widget_class)
+                class_dir = os.path.dirname(class_file_path)
                 
-                # Check if the module has the required function
-                if hasattr(style_module, 'get_stylesheet'):
-                    # Call the function and append the returned style string
-                    style_string = style_module.get_stylesheet(colors)
-                    tool_styles.append(style_string)
-        except Exception as e:
-            # This allows the main app to run even if a tool's style is missing/broken
-            print(f"Warning: Could not load stylesheet for '{tool_id}': {e}")
-            
-    return "\n".join(tool_styles)
+                style_module_path = os.path.join(class_dir, f'{tool_id}_styles.py')
 
-def get_stylesheet(theme='dark'):
-    """Returns the stylesheet for the application based on the selected theme."""
-    colors = COLORS.get(theme, COLORS['dark']) # Default to dark theme if not found
-    
-    # The main stylesheet string
-    main_stylesheet = f"""
-        /* Style the custom title bar and the tab bar within it for a unified background.
-           Using a descendant selector (CustomTitleBar QTabBar) makes the rule more specific. */
-        CustomTitleBar, CustomTitleBar QTabBar {{
-            background-color: {colors["title_bar_background"]};
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-        }}
+                if os.path.exists(style_module_path):
+                    spec = importlib.util.spec_from_file_location(f"tools.{tool_id}.styles", style_module_path)
+                    style_module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(style_module)
+                    
+                    if hasattr(style_module, 'get_stylesheet'):
+                        style_string = style_module.get_stylesheet(colors)
+                        tool_styles.append(style_string)
+            except Exception as e:
+                print(f"Warning: Could not load stylesheet for '{tool_id}': {e}")
+                
+        return "\n".join(tool_styles)
 
-        /* Target the main content area specifically using its object name */
-        QWidget#main_content {{
-            background-color: {colors["widget_background"]};
-            border-radius: 20px;
-        }}
+    def get_stylesheet(self):
+        """Returns the full stylesheet for the application based on the current style."""
+        colors = self.themes.get(self.current_theme, self.themes['dark'])
+        font_size = self.font_size
         
-        /* Style for individual tabs within the custom title bar */
-        CustomTitleBar QTabBar::tab {{
-            background: {colors["title_bar_background"]};
-            color: {colors["text_color"]};
-            padding: 8px 15px;
-            margin-top: 2px; /* Pushes inactive tabs down slightly */
-            border: 1px solid {colors["title_bar_background"]};
-            border-bottom: none;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
-        }}
-
-        /* Style for the currently selected tab within the custom title bar */
-        CustomTitleBar QTabBar::tab:selected {{
-            background: {colors["tab_selected_background"]};
-            color: {colors["tab_selected_text"]};
-            margin-top: 2px; /* Aligns active tab with the top */
-            padding-bottom: 10px; /* Extends tab slightly to overlap the pane */
-        }}
-
-        CustomTitleBar QTabBar::tab:!selected:hover {{
-            background: {colors["titlebar_button_hover"]};
-        }}
-
-        /* Ensure the close button is visible */
-        CustomTitleBar QTabBar::close-button {{
-            image: url(close.png); /* A placeholder, ideally use an icon font or a resource file */
-            background: transparent;
-            subcontrol-position: right;
-            subcontrol-origin: padding;
-            padding: 2px;
-            border-radius: 5px;
-        }}
-        CustomTitleBar QTabBar::close-button:hover {{
-            background: #c0392b;
-        }}
-
-        /* Set explicit styles for other widgets instead of a generic QWidget rule */
-        QLabel {{
-            background-color: transparent; /* Prevent labels from having a solid background */
-            color: {colors["label_text"]};
-            font-size: 16px;
-            padding: 10px;
-        }}
-
-        QPushButton {{
-            background-color: {colors["button_background"]};
-            color: {colors["button_text"]};
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-        }}
-        QPushButton:hover {{
-            background-color: {colors["button_hover"]};
-        }}
-
-        QSpinBox {{
-            background-color: {colors["widget_background"]};
-            color: {colors["label_text"]};
-            padding: 5px;
-            border: 1px solid {colors["spinbox_border"]};
-            border-radius: 5px;
-            font-size: 14px;
-        }}
+        main_stylesheet = f"""
+            CustomTitleBar, CustomTitleBar QTabBar {{
+                background-color: {colors["bg_secondary"]};
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+            }}
+            /* Style for the content area of windows/dialogs */
+            QWidget#main_content {{
+                background-color: {colors["bg_primary"]};
+                border-bottom-left-radius: 10px;
+                border-bottom-right-radius: 10px;
+            }}
+            /* Title label specific to the custom title bar */
+            CustomTitleBar QLabel#title_label {{
+                color: {colors["text_primary"]};
+                font-size: {font_size + 2}px;
+                font-weight: bold;
+                padding-left: 10px;
+            }}
+            CustomTitleBar QTabBar::tab {{
+                background: {colors["bg_secondary"]};
+                color: {colors["text_primary"]};
+                padding: 8px 15px;
+                margin-top: 2px;
+                border: 1px solid {colors["bg_secondary"]};
+                border-bottom: none;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+            }}
+            CustomTitleBar QTabBar::tab:selected {{
+                background: {colors["bg_primary"]};
+                color: {colors["text_active"]};
+                margin-top: 2px;
+                padding-bottom: 10px;
+                 border-bottom-left-radius: 0px;
+                border-bottom-right-radius: 0px;
+            }}
+            CustomTitleBar QTabBar::tab:!selected:hover {{
+                background: {colors["accent_subtle_hover"]};
+            }}
+            CustomTitleBar QTabBar::close-button {{
+                image: url(close.png);
+                background: transparent;
+                subcontrol-position: right;
+                subcontrol-origin: padding;
+                padding: 2px;
+                border-radius: 5px;
+            }}
+            CustomTitleBar QTabBar::close-button:hover {{
+                background: #c0392b;
+            }}
+            QLabel {{
+                background-color: transparent;
+                color: {colors["text_primary"]};
+                font-size: {font_size}px;
+                padding: 10px;
+            }}
+            QPushButton {{
+                background-color: {colors["accent_primary"]};
+                color: {colors["text_accent"]};
+                border: none;
+                padding: 10px;
+                border-radius: 5px;
+                font-size: {font_size - 1}px;
+            }}
+            QPushButton:hover {{
+                background-color: {colors["accent_hover"]};
+            }}
+            QSpinBox {{
+                background-color: {colors["bg_primary"]};
+                color: {colors["text_primary"]};
+                padding: 5px;
+                border: 1px solid {colors["border_color"]};
+                border-radius: 5px;
+                font-size: {font_size - 1}px;
+            }}
+            QStackedWidget {{
+                background-color: {colors["bg_primary"]};
+            }}
+            CustomTitleBar QPushButton {{
+                padding: 5px;
+                font-size: {font_size - 2}px;
+                border-radius: 4px;
+                background-color: transparent;
+                color: {colors["text_primary"]};
+            }}
+             CustomTitleBar QPushButton:hover {{
+                background-color: {colors["accent_subtle_hover"]};
+            }}
+            CustomTitleBar QPushButton#close_button:hover {{
+                background-color: {colors["accent_close"]};
+                color: {colors["text_primary"]};
+            }}
+            QMenu {{
+                background-color: {colors["bg_tertiary"]};
+                color: {colors["text_primary"]};
+                border: 1px solid {colors["accent_subtle_hover"]};
+                border-radius: 5px;
+                padding: 5px;
+            }}
+            QMenu::item {{
+                padding: 8px 25px 8px 20px;
+                border-radius: 5px;
+            }}
+            QMenu::item:selected {{
+                background-color: {colors["accent_subtle_hover"]};
+            }}
+            QMenu::separator {{
+                height: 1px;
+                background: {colors["border_color"]};
+                margin-left: 10px;
+                margin-right: 5px;
+            }}
+            /* Add styles for QComboBox and QDialog */
+            QComboBox {{
+                background-color: {colors["accent_primary"]};
+                color: {colors["text_accent"]};
+                padding: 5px;
+                border: 1px solid {colors["border_color"]};
+                border-radius: 5px;
+            }}
+             QComboBox:hover {{
+                background-color: {colors["accent_hover"]};
+            }}
+            QComboBox::drop-down {{
+                border: none;
+            }}
+            QComboBox QAbstractItemView {{
+                 background-color: {colors["bg_tertiary"]};
+                 color: {colors["text_primary"]};
+                 selection-background-color: {colors["accent_subtle_hover"]};
+                 border: 1px solid {colors["accent_subtle_hover"]};
+            }}
+             QDialog {{
+                /* The main background is now handled by main_content and CustomTitleBar */
+                background-color: transparent;
+            }}
+        """
         
-        QStackedWidget {{
-            background-color: {colors["widget_background"]};
-        }}
+        return main_stylesheet + "\n" + self._get_tool_stylesheets(colors)
 
-        /* Style the buttons specifically within the CustomTitleBar */
-        CustomTitleBar QPushButton {{
-            padding: 5px;
-            font-size: 12px;
-            border-radius: 4px;
-            background-color: {colors["titlebar_button_background"]};
-            color: {colors["text_color"]};
-        }}
-         CustomTitleBar QPushButton:hover {{
-            background-color: {colors["titlebar_button_hover"]};
-        }}
-        CustomTitleBar QPushButton#close_button:hover {{
-            background-color: {colors["close_button_hover"]};
-            color: {colors["text_color"]};
-        }}
-    """
-    
-    # Append the dynamically loaded tool-specific styles
-    return main_stylesheet + "\n" + get_tool_stylesheets(colors)
+# Create a single instance of the StyleManager for the entire application to use.
+style_manager = StyleManager()

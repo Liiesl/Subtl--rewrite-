@@ -1,2 +1,4 @@
 /__pycache__/
 *.pyc
+clean.bat
+generate-ascii-tree.py

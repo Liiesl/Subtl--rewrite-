@@ -7,6 +7,7 @@ import qtawesome as qta
 
 from tool_manager import AVAILABLE_TOOLS
 from tools.placeholder_tool.placeholder_tool import PlaceholderTool
+from dashboard import DashboardWidget # Import the new dashboard class
 
 class DraggableTabBar(QTabBar):
     """
@@ -106,20 +107,10 @@ class TabManager(QObject):
             self.tab_container.tab_bar.setTabText(current_tab_index, history_item['title'])
 
     def create_dashboard(self):
-        """Creates the dashboard widget with a grid of available tools."""
-        dashboard_widget = QWidget()
-        layout = QGridLayout(dashboard_widget)
-        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        row, col = 0, 0
-        for tool_key, tool_info in AVAILABLE_TOOLS.items():
-            button = QPushButton(tool_info['display_name'])
-            button.clicked.connect(lambda checked, key=tool_key: self.open_tool(key))
-            layout.addWidget(button, row, col)
-            col += 1
-            if col > 2:
-                col = 0
-                row += 1
+        """Creates the dashboard widget and connects its tool selection signal."""
+        dashboard_widget = DashboardWidget()
+        # When a tool is selected in the dashboard, open it.
+        dashboard_widget.tool_selected.connect(self.open_tool)
         return dashboard_widget
 
     def open_tool(self, tool_key):
@@ -143,6 +134,7 @@ class TabManager(QObject):
         history_data = self.tab_histories[current_tab_index]
         current_pos = history_data['current_index']
 
+        # Clear forward history when a new tool is opened
         history_data['history'] = history_data['history'][:current_pos + 1]
         history_data['history'].append({'widget_index': tool_widget_index, 'title': tool_display_name})
         history_data['current_index'] += 1
@@ -153,15 +145,21 @@ class TabManager(QObject):
     def open_new_dashboard_tab(self):
         """Opens a new tab with the dashboard view."""
         new_dashboard = self.create_dashboard()
+        
+        # Each tab needs its own QStackedWidget to manage its history
         stacked_widget = QStackedWidget()
         dashboard_index_in_stack = stacked_widget.addWidget(new_dashboard)
 
+        # Initialize the history for this new tab
         self.tab_histories.append({
             'history': [{'widget_index': dashboard_index_in_stack, 'title': 'Dashboard'}],
             'current_index': 0
         })
         
+        # Add the tab's QStackedWidget to the main pages widget
         self.pages_widget.addWidget(stacked_widget)
+        
+        # Add a tab to the UI and make it current
         new_tab_index = self.tab_container.tab_bar.addTab("Dashboard")
         self.tab_container.tab_bar.setCurrentIndex(new_tab_index)
         self.tab_container.tab_bar.setTabsClosable(True)
@@ -173,8 +171,9 @@ class TabManager(QObject):
         widget = self.pages_widget.widget(index)
         self.pages_widget.removeWidget(widget)
         if widget is not None:
+            # Ensure the widget and its children are deleted to free memory
             widget.deleteLater()
             
         self.tab_container.tab_bar.removeTab(index)
+        # Remove the corresponding history for the closed tab
         del self.tab_histories[index]
-        self.tab_container.tab_bar.setTabIcon(index, qta.icon('mdi.close'))

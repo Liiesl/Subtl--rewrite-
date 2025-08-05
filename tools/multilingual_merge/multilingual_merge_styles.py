@@ -12,6 +12,6 @@ def get_stylesheet(colors):
             font-size: 18px;
             qproperty-alignment: 'AlignCenter';
             font-weight: bold;
-            color: {colors["label_text"]};
+            color: {colors["text_primary"]};
         }}
     """

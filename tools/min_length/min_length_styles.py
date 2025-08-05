@@ -10,7 +10,7 @@ def get_stylesheet(colors):
         MinLengthTool #file_path_label {{
             font-size: 13px;
             font-style: italic;
-            color: {colors["text_color"]};
+            color: {colors["text_primary"]};
             padding: 5px 10px;
         }}
         
