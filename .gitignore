@@ -2,3 +2,4 @@
 *.pyc
 clean.bat
 generate-ascii-tree.py
+build/

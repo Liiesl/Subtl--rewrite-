@@ -13,7 +13,8 @@ from PySide6.QtCore import Qt
 TOOL_DEFINITION = {
     "display_name": "📏 Minimum Length",
     "description": "Adjust the minimum display time of subtitles.",
-    "widget_class_name": "MinLengthTool"  # The name of the main class in this file
+    "widget_class_name": "MinLengthTool",  # The name of the main class in this file
+    "can_open_file": True # This tool can open .srt files
 }
 
 class MinLengthTool(QWidget):
@@ -68,8 +69,26 @@ class MinLengthTool(QWidget):
         """
         file_path, _ = QFileDialog.getOpenFileName(self, "Open SRT File", "", "SubRip Files (*.srt)")
         if file_path:
-            self.input_file_path = file_path
-            self.file_path_label.setText(f"Selected: {file_path}")
+            self.load_file(file_path)
+
+    def load_file_on_startup(self, file_path: str):
+        """
+        Loads a file when the tool is opened directly with a file.
+        This method is called by the TabManager.
+        """
+        if os.path.exists(file_path) and file_path.endswith('.srt'):
+            self.load_file(file_path)
+        else:
+            # You might want to show an error message if the file is invalid
+            self.file_path_label.setText(f"Error: Invalid or non-existent file provided.")
+
+
+    def load_file(self, file_path):
+        """
+        A central method to handle the logic of loading a file into the tool.
+        """
+        self.input_file_path = file_path
+        self.file_path_label.setText(f"Selected: {file_path}")
 
     def apply_min_length(self):
         """

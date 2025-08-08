@@ -3,7 +3,6 @@
 import os
 import inspect
 import importlib.util
-from tool_manager import AVAILABLE_TOOLS
 
 class StyleManager:
     """
@@ -77,6 +76,9 @@ class StyleManager:
         Dynamically finds, imports, and gets the stylesheet for each available tool.
         Note: This change to the color dictionary is a breaking change for external tool stylesheets.
         """
+        # FIX: Import locally to prevent a circular dependency.
+        from tool_manager import AVAILABLE_TOOLS
+        
         tool_styles = []
         for tool_id, tool_data in AVAILABLE_TOOLS.items():
             widget_class = tool_data['widget_class']

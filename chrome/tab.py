@@ -1,13 +1,16 @@
 # tab.py
 
+# MODIFIED: Added os and QMessageBox for the new direct-opening functionality
+import os
 from PySide6.QtWidgets import (QWidget, QHBoxLayout, QPushButton, QStackedWidget,
-                               QTabBar, QGridLayout, QSizePolicy)
+                               QTabBar, QGridLayout, QSizePolicy, QMessageBox)
 from PySide6.QtCore import QObject, Qt
 import qtawesome as qta
 
+# MODIFIED: AVAILABLE_TOOLS is now needed for the new method
 from tool_manager import AVAILABLE_TOOLS
 from tools.placeholder_tool.placeholder_tool import PlaceholderTool
-from dashboard import DashboardWidget # Import the new dashboard class
+from dashboard import DashboardWidget
 
 class DraggableTabBar(QTabBar):
     """
@@ -157,12 +160,60 @@ class TabManager(QObject):
         })
         
         # Add the tab's QStackedWidget to the main pages widget
-        self.pages_widget.addWidget(stacked_widget)
+        page_index = self.pages_widget.addWidget(stacked_widget)
         
         # Add a tab to the UI and make it current
         new_tab_index = self.tab_container.tab_bar.addTab("Dashboard")
-        self.tab_container.tab_bar.setCurrentIndex(new_tab_index)
         self.tab_container.tab_bar.setTabsClosable(True)
+        self.tab_container.tab_bar.setCurrentIndex(new_tab_index)
+        self.pages_widget.setCurrentIndex(page_index)
+
+
+    # NEW: This method handles opening a file directly into a chosen tool
+    def open_tool_directly(self, tool_id, file_path):
+        """
+        Creates a new tab for a specific tool and instructs it to load a file.
+        This bypasses the dashboard and is used for file-opening startups.
+        """
+        if tool_id not in AVAILABLE_TOOLS:
+            QMessageBox.critical(self.main_window, "Tool Not Found",
+                                 f"The tool '{tool_id}' could not be found.")
+            self.open_new_dashboard_tab()
+            return
+
+        tool_info = AVAILABLE_TOOLS[tool_id]
+        ToolWidgetClass = tool_info['widget_class']
+        tool_display_name = tool_info['display_name']
+        tool_widget = ToolWidgetClass(tool_display_name) if issubclass(ToolWidgetClass, PlaceholderTool) else ToolWidgetClass()
+
+        # Convention: Check for a method to load the file on startup
+        if hasattr(tool_widget, 'load_file_on_startup'):
+            try:
+                tool_widget.load_file_on_startup(file_path)
+            except Exception as e:
+                QMessageBox.critical(self.main_window, "File Load Error",
+                                     f"Failed to load '{os.path.basename(file_path)}' in {tool_display_name}.\n\nError: {e}")
+                self.open_new_dashboard_tab()
+                return
+        else:
+            QMessageBox.warning(self.main_window, "Tool Incompatible",
+                                f"The tool '{tool_display_name}' cannot open files directly.")
+            self.open_new_dashboard_tab()
+            return
+
+        # Create a new tab for this tool (logic adapted from open_new_dashboard_tab)
+        stacked_widget = QStackedWidget()
+        tool_widget_index = stacked_widget.addWidget(tool_widget)
+        self.tab_histories.append({
+            'history': [{'widget_index': tool_widget_index, 'title': tool_display_name}],
+            'current_index': 0
+        })
+        page_index = self.pages_widget.addWidget(stacked_widget)
+        new_tab_index = self.tab_container.tab_bar.addTab(tool_display_name)
+        self.tab_container.tab_bar.setTabsClosable(True)
+        self.tab_container.tab_bar.setCurrentIndex(new_tab_index)
+        self.pages_widget.setCurrentIndex(page_index)
+
 
     def close_tab(self, index):
         """Closes the tab at the given index, ensuring at least one tab remains."""

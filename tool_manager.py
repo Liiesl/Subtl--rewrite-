@@ -38,6 +38,8 @@ def load_tools():
                         "display_name": definition['display_name'],
                         "widget_class": widget_class,
                         "description": definition.get('description', ''),
+                        # NEW: Check for the 'can_open_file' flag, defaulting to False
+                        "can_open_file": definition.get('can_open_file', False),
                     }
                 else:
                     print(f"Warning: Tool '{tool_id}' is missing a 'TOOL_DEFINITION'.")
