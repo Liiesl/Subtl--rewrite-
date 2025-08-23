@@ -1,62 +1,49 @@
 # tool_loader.py
 
-import os
-import importlib
+import sys
+import traceback
+
+# Import the list of registered tools from the auto-generated registry.
+# This is the Nuitka-friendly way.
+from .tool_registry import REGISTERED_TOOL_MODULES
 
 def load_tools():
     """
-    Dynamically discovers and loads all available tools from the 'tools' directory.
+    Loads all available tools that have been explicitly registered in tool_registry.py.
 
-    This script resides within the 'tools' directory and scans its sibling folders.
-    Each tool is expected to be in its own subdirectory and contain a Python file
-    that defines a 'TOOL_DEFINITION' dictionary. The manager reads this definition
-    to get the display name, description, and widget class for the tool.
-
-    This approach makes the system plug-and-play: to add a new tool, simply
-    add a new folder with the required files, and it will be loaded automatically.
+    This approach is compatible with compilers like Nuitka because it relies on
+    explicit imports, allowing the compiler to trace and include all necessary files.
     """
     loaded_tools = {}
-    # Since this script is inside the 'tools' directory, its dirname is the directory
-    # we want to scan.
-    tools_dir = os.path.dirname(__file__)
 
-    # Iterate through items in the 'tools' folder
-    for tool_id in os.listdir(tools_dir):
-        tool_path = os.path.join(tools_dir, tool_id)
-        
-        # We must ensure we're looking at a directory for a tool, not this file,
-        # __init__.py, __pycache__, etc.
-        if os.path.isdir(tool_path) and not tool_id.startswith('__'):
-            try:
-                # The module name is assumed to be the same as the folder name (tool_id).
-                # The import path must be relative to the project root for importlib.
-                module_name = f"tools.{tool_id}.{tool_id}"
-                module = importlib.import_module(module_name)
-                
-                # Each tool module must provide its own definition
-                if hasattr(module, 'TOOL_DEFINITION'):
-                    definition = module.TOOL_DEFINITION
-                    
-                    # Get the widget class from the loaded module
-                    widget_class = getattr(module, definition['widget_class_name'])
-                    
-                    # Populate the dictionary entry for the tool
-                    loaded_tools[tool_id] = {
-                        "display_name": definition['display_name'],
-                        "widget_class": widget_class,
-                        "description": definition.get('description', ''),
-                        # NEW: Check for the 'can_open_file' flag, defaulting to False
-                        "can_open_file": definition.get('can_open_file', False),
-                    }
-                else:
-                    print(f"Warning: Tool '{tool_id}' is missing a 'TOOL_DEFINITION'.")
+    # Iterate through the explicitly imported modules, not the filesystem.
+    for module in REGISTERED_TOOL_MODULES:
+        try:
+            # The tool_id is derived from the module's name (e.g., 'tools.renamer.renamer' -> 'renamer')
+            tool_id = module.__name__.split('.')[-1]
 
-            except ImportError as e:
-                print(f"Warning: Could not import module for tool '{tool_id}': {e}")
-            except (AttributeError, KeyError) as e:
-                print(f"Warning: Tool '{tool_id}' has a misconfigured definition: {e}")
+            if hasattr(module, 'TOOL_DEFINITION'):
+                definition = module.TOOL_DEFINITION
+                widget_class = getattr(module, definition['widget_class_name'])
+
+                loaded_tools[tool_id] = {
+                    "display_name": definition['display_name'],
+                    "widget_class": widget_class,
+                    "description": definition.get('description', ''),
+                    "can_open_file": definition.get('can_open_file', False),
+                    "stylesheet_module": definition.get('stylesheet_module', None),
+                }
+            else:
+                print(f"Warning: Tool module '{module.__name__}' is missing a 'TOOL_DEFINITION'.")
+
+        except (AttributeError, KeyError) as e:
+            print(f"Warning: Tool module '{module.__name__}' has a misconfigured definition: {e}")
+            traceback.print_exc()
+
+    if not loaded_tools:
+        print("Warning: No tools were loaded. Run build_tool_registry.py to generate the tool registry.")
 
     return loaded_tools
 
-# The single source of truth, now populated entirely at runtime.
+# The single source of truth, now populated at runtime from the static registry.
 AVAILABLE_TOOLS = load_tools()
