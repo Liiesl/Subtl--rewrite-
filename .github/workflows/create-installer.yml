@@ -1,0 +1,59 @@
+name: Create Windows Installer
+on:
+  workflow_run:
+    workflows: ["Stable Release", "Early Release Build"] # Trigger after these workflows
+    types:
+      - completed
+jobs:
+  build-installer:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: windows-latest
+    steps:
+      # 1. Download the Windows standalone build artifact
+      - name: Download Windows Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Subtle-Windows-${{ github.event.workflow_run.head_sha }} # Use the SHA to get the right artifact
+          path: build/main.dist
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      # 2. Set up environment variables
+      - name: Set up environment variables
+        run: |
+          echo "APP_NAME=Subtl" >> $env:GITHUB_ENV
+          echo "VERSION=${{ github.event.workflow_run.head_branch }}" | sed 's/v//' >> $env:GITHUB_ENV
+          echo "EXE_NAME=main.exe" >> $env:GITHUB_ENV
+        shell: bash
+      # 3. Create Installer for Windows
+      - name: Install NSIS and create installer script
+        run: |
+          choco install nsis
+          New-Item -ItemType File -Path installer.nsi -Value @"
+          !define APP_NAME "${{ env.APP_NAME }}"
+          !define COMPANY_NAME "Liiesl"
+          !define VERSION "${{ env.VERSION }}"
+          !define EXE_NAME "${{ env.EXE_NAME }}"
+          OutFile "${{ env.APP_NAME }}-${{ env.VERSION }}-Installer.exe"
+          InstallDir "`$PROGRAMFILES\${{ env.APP_NAME }}"
+          RequestExecutionLevel admin
+          Page directory
+          Page instfiles
+          Section
+            SetOutPath "`$INSTDIR"
+            File /r "build\main.dist\"
+            CreateShortCut "`$DESKTOP\${{ env.APP_NAME }}.lnk" "`$INSTDIR\${{ env.EXE_NAME }}"
+          SectionEnd
+          "@
+        shell: powershell
+      # 4. Run NSIS to build the installer
+      - name: Run NSIS
+        uses: joncloud/makensis-action@v4
+        with:
+          script-file: installer.nsi
+      # 5. Upload the Windows Installer as a separate artifact
+      - name: Upload Windows Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Subtle-Windows-${{ github.event.workflow_run.head_branch }}-Installer
+          path: 'Subtl-${{ env.VERSION }}-Installer.exe'
+          retention-days: 7

@@ -22,7 +22,6 @@ jobs:
   build-windows:
     if: ${{ inputs.os == 'all' || inputs.os == 'windows' }}
     runs-on: windows-latest
-    # Use the input to set the environment name dynamically
     environment:
       name: ${{ inputs.environment_name }}
       url: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ inputs.version_tag }}
@@ -77,48 +76,6 @@ jobs:
           name: Subtle-Windows-${{ github.ref_name }}
           # The path is the output folder created by Nuitka
           path: build/main.dist/
-          retention-days: 7
-
-      # 6. Create Installer for Windows
-      - name: Install NSIS and create installer script
-        run: |
-          choco install nsis
-          New-Item -ItemType File -Path installer.nsi -Value @"
-          !define APP_NAME "Subtl"
-          !define COMPANY_NAME "Liiesl"
-          !define VERSION "${{ github.ref_name }}"
-          !define EXE_NAME "main.exe"
-
-          OutFile "${{ env.APP_NAME }}-${{ env.VERSION }}-Installer.exe"
-          InstallDir "`$PROGRAMFILES\${{ env.APP_NAME }}"
-          RequestExecutionLevel admin
-
-          Page directory
-          Page instfiles
-
-          Section
-            SetOutPath "`$INSTDIR"
-            File /r "build\main.dist\"
-            CreateShortCut "`$DESKTOP\${{ env.APP_NAME }}.lnk" "`$INSTDIR\${{ env.EXE_NAME }}"
-          SectionEnd
-          "@
-        shell: powershell
-        env:
-          APP_NAME: "Subtl"
-          VERSION: ${{ github.ref_name }}
-          EXE_NAME: "main.exe"
-
-      - name: Run NSIS
-        uses: joncloud/makensis-action@v4
-        with:
-          script-file: installer.nsi
-
-      # 7. Upload the Windows Installer as a separate artifact
-      - name: Upload Windows Installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: Subtle-Windows-${{ github.ref_name }}-Installer
-          path: 'Subtl-${{ github.ref_name }}-Installer.exe'
           retention-days: 7
 
   build-ubuntu:
