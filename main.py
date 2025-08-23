@@ -14,7 +14,7 @@ from chrome.titlebar import CustomTitleBar
 from chrome.tab import TabManager
 from styles import style_manager
 from settings_dialog import SettingsDialog
-from tool_manager import AVAILABLE_TOOLS # NEW: Import available tools
+from tools.tool_loader import AVAILABLE_TOOLS # NEW: Import available tools
 
 # NEW: This class is the repurposed preloader.py, now acting as a tool selector.
 class ChooseToolWindow(QDialog):

@@ -1,4 +1,4 @@
-# tool_manager.py
+# tool_loader.py
 
 import os
 import importlib
@@ -7,6 +7,7 @@ def load_tools():
     """
     Dynamically discovers and loads all available tools from the 'tools' directory.
 
+    This script resides within the 'tools' directory and scans its sibling folders.
     Each tool is expected to be in its own subdirectory and contain a Python file
     that defines a 'TOOL_DEFINITION' dictionary. The manager reads this definition
     to get the display name, description, and widget class for the tool.
@@ -15,14 +16,20 @@ def load_tools():
     add a new folder with the required files, and it will be loaded automatically.
     """
     loaded_tools = {}
+    # Since this script is inside the 'tools' directory, its dirname is the directory
+    # we want to scan.
     tools_dir = os.path.dirname(__file__)
 
-    # Iterate through subdirectories in the 'tools' folder
-    for tool_id in os.listdir(os.path.join(tools_dir, 'tools')):
-        tool_dir = os.path.join(tools_dir, 'tools', tool_id)
-        if os.path.isdir(tool_dir) and not tool_id.startswith('__'):
+    # Iterate through items in the 'tools' folder
+    for tool_id in os.listdir(tools_dir):
+        tool_path = os.path.join(tools_dir, tool_id)
+        
+        # We must ensure we're looking at a directory for a tool, not this file,
+        # __init__.py, __pycache__, etc.
+        if os.path.isdir(tool_path) and not tool_id.startswith('__'):
             try:
-                # The module name is assumed to be the same as the folder name (tool_id)
+                # The module name is assumed to be the same as the folder name (tool_id).
+                # The import path must be relative to the project root for importlib.
                 module_name = f"tools.{tool_id}.{tool_id}"
                 module = importlib.import_module(module_name)
                 

@@ -77,7 +77,7 @@ class StyleManager:
         Note: This change to the color dictionary is a breaking change for external tool stylesheets.
         """
         # FIX: Import locally to prevent a circular dependency.
-        from tool_manager import AVAILABLE_TOOLS
+        from tools.tool_loader import AVAILABLE_TOOLS
         
         tool_styles = []
         for tool_id, tool_data in AVAILABLE_TOOLS.items():
@@ -147,7 +147,7 @@ class StyleManager:
                 background: {colors["accent_subtle_hover"]};
             }}
             CustomTitleBar QTabBar::close-button {{
-                image: url(close.png);
+                image: url(assets/close.png);
                 background: transparent;
                 subcontrol-position: right;
                 subcontrol-origin: padding;

@@ -3,3 +3,5 @@
 clean.bat
 generate-ascii-tree.py
 build/
+nuitka-command.bash
+.venv

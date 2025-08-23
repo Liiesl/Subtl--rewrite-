@@ -2,7 +2,7 @@
 
 from PySide6.QtWidgets import QWidget, QGridLayout, QPushButton
 from PySide6.QtCore import Qt, Signal
-from tool_manager import AVAILABLE_TOOLS
+from tools.tool_loader import AVAILABLE_TOOLS
 
 class DashboardWidget(QWidget):
     """

@@ -8,7 +8,7 @@ from PySide6.QtCore import QObject, Qt
 import qtawesome as qta
 
 # MODIFIED: AVAILABLE_TOOLS is now needed for the new method
-from tool_manager import AVAILABLE_TOOLS
+from tools.tool_loader import AVAILABLE_TOOLS
 from tools.placeholder_tool.placeholder_tool import PlaceholderTool
 from dashboard import DashboardWidget
 
