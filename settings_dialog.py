@@ -6,6 +6,10 @@ from PySide6.QtCore import QSettings, Qt
 from styles import style_manager
 from chrome.titlebar import CustomTitleBar
 
+# MODIFIED: Centralized application constants to match Nuitka build
+ORGANIZATION_NAME = "Liiesl"
+APPLICATION_NAME = "Subtl"
+
 class SettingsDialog(QDialog):
     """
     A dialog for configuring application settings, using a custom title bar with tabs.
@@ -18,7 +22,8 @@ class SettingsDialog(QDialog):
         self.setWindowTitle("Settings")
         self.setMinimumWidth(400)
 
-        self.settings = QSettings("Subtle", "Subtle")
+        # MODIFIED: Use constants for QSettings organization and application names
+        self.settings = QSettings(ORGANIZATION_NAME, APPLICATION_NAME)
 
         # --- Main Layout ---
         main_layout = QVBoxLayout(self)
@@ -111,9 +116,4 @@ class SettingsDialog(QDialog):
         self.settings.setValue("theme", selected["theme"])
         self.settings.setValue("font_size", selected["font_size"])
 
-        # Update the style manager instance with the new settings
-        style_manager.set_style_properties(
-            theme=selected["theme"],
-            font_size=selected["font_size"]
-        )
-        super().accept()
+        # Update the style manager in

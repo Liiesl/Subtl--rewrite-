@@ -1,4 +1,3 @@
-
 # tools/merge/styles.py
 
 def get_stylesheet(colors):
@@ -32,14 +31,14 @@ def get_stylesheet(colors):
         }}
 
         MergeTool #file_preview, MergeTool #glue_secondary_file_preview {{
-            color: {colors["text_secondary"]};
+            color: {colors["text_primary"]};
             font-style: italic;
             margin-left: 10px;
         }}
 
         MergeTool QPushButton {{
-            background-color: {colors["button_bg"]};
-            color: {colors["button_fg"]};
+            background-color: {colors["accent_primary"]};
+            color: {colors["text_accent"]};
             border: 1px solid {colors["border_color"]};
             border-radius: 4px;
             padding: 8px 12px;
@@ -47,11 +46,11 @@ def get_stylesheet(colors):
         }}
 
         MergeTool QPushButton:hover {{
-            background-color: {colors["button_hover_bg"]};
+            background-color: {colors["accent_hover"]};
         }}
 
         MergeTool QPushButton:pressed {{
-            background-color: {colors["button_pressed_bg"]};
+            background-color: {colors["accent_hover"]};
         }}
 
         MergeTool #mode_button {{
@@ -59,9 +58,9 @@ def get_stylesheet(colors):
         }}
         
         MergeTool #mode_button:checked {{
-            background-color: {colors["highlight_bg"]};
-            color: {colors["highlight_fg"]};
-            border: 1px solid {colors["highlight_bg"]};
+            background-color: {colors["accent_primary"]};
+            color: {colors["text_accent"]};
+            border: 1px solid {colors["accent_primary"]};
         }}
 
         MergeTool #export_button {{
@@ -78,7 +77,7 @@ def get_stylesheet(colors):
         }}
         
         MergeTool QLineEdit:focus, MergeTool QComboBox:focus, MergeTool QListWidget:focus {{
-            border: 1px solid {colors["highlight_bg"]};
+            border: 1px solid {colors["accent_primary"]};
         }}
         
         MergeTool #time_input {{
@@ -103,8 +102,8 @@ def get_stylesheet(colors):
         }}
 
         MergeTool QCheckBox::indicator:checked {{
-            background-color: {colors["highlight_bg"]};
-            border: 1px solid {colors["highlight_bg"]};
+            background-color: {colors["accent_primary"]};
+            border: 1px solid {colors["accent_primary"]};
             image: url(check-icon.svg); /* A checkmark icon would be needed */
         }}
 

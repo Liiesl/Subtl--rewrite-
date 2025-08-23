@@ -16,6 +16,10 @@ from styles import style_manager
 from settings_dialog import SettingsDialog
 from tools.tool_loader import AVAILABLE_TOOLS # NEW: Import available tools
 
+# MODIFIED: Centralized application constants to match Nuitka build
+ORGANIZATION_NAME = "Liiesl"
+APPLICATION_NAME = "Subtl"
+
 # NEW: This class is the repurposed preloader.py, now acting as a tool selector.
 class ChooseToolWindow(QDialog):
     """
@@ -72,11 +76,13 @@ class Subtle(QMainWindow):
     # MODIFIED: __init__ now accepts startup parameters
     def __init__(self, tool_to_open=None, file_to_open=None):
         super().__init__()
-        self.setWindowTitle("Subtl (rewrite)")
+        # MODIFIED: Use constant for the window title
+        self.setWindowTitle(APPLICATION_NAME)
         self.setGeometry(100, 100, 800, 600)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
-        self.settings = QSettings("Subtle", "Subtle")
+        # MODIFIED: Use constants for QSettings organization and application names
+        self.settings = QSettings(ORGANIZATION_NAME, APPLICATION_NAME)
 
         main_widget = QWidget()
         main_widget.setObjectName("main_content")
