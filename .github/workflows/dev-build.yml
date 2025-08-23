@@ -23,7 +23,7 @@ jobs:
   call-build:
     needs: setup
     # CORRECTED LINE: Use the full, dynamic path to the workflow in your repository
-    uses: ${{ github.repository }}/.github/workflows/build.yml@${{ github.ref }}
+    uses: ./.github/workflows/build.yml
     with:
       os: ${{ needs.setup.outputs.os_name }}
       version_tag: ${{ needs.setup.outputs.version_tag }}
