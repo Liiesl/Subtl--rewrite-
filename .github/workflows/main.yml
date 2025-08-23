@@ -24,6 +24,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # Add this step before the 'Build with Nuitka' step in each job
+      - name: Set Version from Tag
+        run: echo "VERSION=${{ github.ref_name }}" | sed 's/v//' >> $GITHUB_ENV
+        shell: bash
+
       # 4. Run the Nuitka-Action to compile the application
       - name: Build with Nuitka
         uses: Nuitka/Nuitka-Action@main
@@ -32,9 +37,9 @@ jobs:
           script-name: main.py
           company-name: "Liiesl"
           product-name: "Subtl"
-          # Use the tag name for file and product versions
-          file-version: ${{ github.ref_name }}
-          product-version: ${{ github.ref_name }}
+          # Use the modified version environment variable
+          file-version: ${{ env.VERSION }}
+          product-version: ${{ env.VERSION }}
           file-description: "Subtl. An app for manipulating/editing subtitles."
           windows-icon-from-ico: assets/icon.ico
           mingw64: true
@@ -118,6 +123,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # Add this step before the 'Build with Nuitka' step in each job
+      - name: Set Version from Tag
+        run: echo "VERSION=${{ github.ref_name }}" | sed 's/v//' >> $GITHUB_ENV
+        shell: bash
+
       # 4. Run the Nuitka-Action to compile the application
       - name: Build with Nuitka
         uses: Nuitka/Nuitka-Action@main
@@ -125,8 +135,9 @@ jobs:
           script-name: main.py
           company-name: "Liiesl"
           product-name: "Subtl"
-          file-version: ${{ github.ref_name }}
-          product-version: ${{ github.ref_name }}
+          # Use the modified version environment variable
+          file-version: ${{ env.VERSION }}
+          product-version: ${{ env.VERSION }}
           file-description: "Subtl. An app for manipulating/editing subtitles."
           mode: standalone
           enable-plugins: pyside6
@@ -158,6 +169,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # Add this step before the 'Build with Nuitka' step in each job
+      - name: Set Version from Tag
+        run: echo "VERSION=${{ github.ref_name }}" | sed 's/v//' >> $GITHUB_ENV
+        shell: bash
+
       # 4. Run the Nuitka-Action to compile the application
       - name: Build with Nuitka
         uses: Nuitka/Nuitka-Action@main
@@ -165,8 +181,9 @@ jobs:
           script-name: main.py
           company-name: "Liiesl"
           product-name: "Subtl"
-          file-version: ${{ github.ref_name }}
-          product-version: ${{ github.ref_name }}
+          # Use the modified version environment variable
+          file-version: ${{ env.VERSION }}
+          product-version: ${{ env.VERSION }}
           file-description: "Subtl. An app for manipulating/editing subtitles."
           mode: standalone
           enable-plugins: pyside6
