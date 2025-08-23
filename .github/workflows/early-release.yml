@@ -1,0 +1,17 @@
+name: Early Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*.*'       # e.g., v1.2.3
+      - '!v*.*.*'  # Excludes 4-part tags
+
+jobs:
+  call-reusable-build:
+    uses: ./.github/workflows/build.yml
+    with:
+      os: 'all'
+      version_tag: ${{ github.ref_name }}
+      # Pass the specific environment name
+      environment_name: 'Release-early'
+    secrets: inherit
