@@ -1,8 +1,6 @@
 # styles.py
 
 import os
-import inspect
-import importlib.util
 
 class StyleManager:
     """
@@ -73,31 +71,24 @@ class StyleManager:
 
     def _get_tool_stylesheets(self, colors):
         """
-        Dynamically finds, imports, and gets the stylesheet for each available tool.
-        Note: This change to the color dictionary is a breaking change for external tool stylesheets.
+        Loads tool-specific stylesheet templates from the static registry
+        and formats them with the current theme's colors.
         """
-        # FIX: Import locally to prevent a circular dependency.
-        from tools.tool_loader import AVAILABLE_TOOLS
-        
-        tool_styles = []
-        for tool_id, tool_data in AVAILABLE_TOOLS.items():
-            widget_class = tool_data['widget_class']
-            try:
-                class_file_path = inspect.getfile(widget_class)
-                class_dir = os.path.dirname(class_file_path)
-                
-                style_module_path = os.path.join(class_dir, f'{tool_id}_styles.py')
+        try:
+            from tools.style_registry import REGISTERED_STYLE_TEMPLATES
+        except ImportError:
+            print("Warning: 'style_registry.py' not found. Run build_registries.py.")
+            return ""
 
-                if os.path.exists(style_module_path):
-                    spec = importlib.util.spec_from_file_location(f"tools.{tool_id}.styles", style_module_path)
-                    style_module = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(style_module)
-                    
-                    if hasattr(style_module, 'get_stylesheet'):
-                        style_string = style_module.get_stylesheet(colors)
-                        tool_styles.append(style_string)
-            except Exception as e:
-                print(f"Warning: Could not load stylesheet for '{tool_id}': {e}")
+        tool_styles = []
+        # REGISTERED_STYLE_TEMPLATES is {'tool_id': 'template_string', ...}
+        for tool_id, template in REGISTERED_STYLE_TEMPLATES.items():
+            try:
+                # Fill the placeholders in the template with actual color values
+                formatted_style = template.format(**colors)
+                tool_styles.append(formatted_style)
+            except KeyError as e:
+                print(f"Warning: Stylesheet for '{tool_id}' has an invalid color key: {e}")
                 
         return "\n".join(tool_styles)
 
@@ -106,7 +97,13 @@ class StyleManager:
         colors = self.themes.get(self.current_theme, self.themes['dark'])
         font_size = self.font_size
         
+        # Add font_size to the colors dictionary for formatting, if needed in templates.
+        # This makes the templates even more powerful.
+        format_dict = colors.copy()
+        format_dict['font_size'] = f"{font_size}px"
+        
         main_stylesheet = f"""
+            /* --- Main Application Styles --- */
             CustomTitleBar, CustomTitleBar QTabBar {{
                 background-color: {colors["bg_secondary"]};
                 border-top-left-radius: 10px;
@@ -244,8 +241,9 @@ class StyleManager:
                 background-color: transparent;
             }}
         """
-        
+
+        # Pass the colors dictionary to be used for formatting the tool templates
         return main_stylesheet + "\n" + self._get_tool_stylesheets(colors)
 
-# Create a single instance of the StyleManager for the entire application to use.
+# Create a single instance of the StyleManager.
 style_manager = StyleManager()

@@ -1,113 +1,113 @@
-# tools/merge/styles.py
+# tools/merge/merge_styles.py
 
-def get_stylesheet(colors):
-    """
-    Returns the stylesheet for the MergeTool.
-    'colors' is a dictionary of the current theme's colors.
-    """
-    return f"""
-        MergeTool #placeholder_label {{
-            font-size: 18px;
-            qproperty-alignment: 'AlignCenter';
-            font-weight: bold;
-            color: {colors["text_primary"]};
-        }}
+# A theme-agnostic template for the Merge tool's stylesheet.
+# The placeholders like {bg_primary}, {text_primary}, etc., will be
+# filled in by the StyleManager at runtime with the current theme's colors.
 
-        /* --- General Styles for MergeTool --- */
-        MergeTool, MergeTool QWidget {{
-            background-color: {colors["bg_primary"]};
-            color: {colors["text_primary"]};
-            font-size: 14px;
-        }}
+STYLE_TEMPLATE = """
+    /* --- General Styles for MergeTool --- */
+    MergeTool #placeholder_label {{
+        font-size: 18px;
+        qproperty-alignment: 'AlignCenter';
+        font-weight: bold;
+        color: {colors["text_primary"]};
+    }}
 
-        MergeTool QLabel {{
-            color: {colors["text_primary"]};
-            padding: 2px 0;
-        }}
+    /* --- General Styles for MergeTool --- */
+    MergeTool, MergeTool QWidget {{
+        background-color: {colors["bg_primary"]};
+        color: {colors["text_primary"]};
+        font-size: 14px;
+    }}
 
-        MergeTool #mode_label {{
-            font-weight: bold;
-            font-size: 15px;
-        }}
+    MergeTool QLabel {{
+        color: {colors["text_primary"]};
+        padding: 2px 0;
+    }}
 
-        MergeTool #file_preview, MergeTool #glue_secondary_file_preview {{
-            color: {colors["text_primary"]};
-            font-style: italic;
-            margin-left: 10px;
-        }}
+    MergeTool #mode_label {{
+        font-weight: bold;
+        font-size: 15px;
+    }}
 
-        MergeTool QPushButton {{
-            background-color: {colors["accent_primary"]};
-            color: {colors["text_accent"]};
-            border: 1px solid {colors["border_color"]};
-            border-radius: 4px;
-            padding: 8px 12px;
-            min-height: 20px;
-        }}
+    MergeTool #file_preview, MergeTool #glue_secondary_file_preview {{
+        color: {colors["text_primary"]};
+        font-style: italic;
+        margin-left: 10px;
+    }}
 
-        MergeTool QPushButton:hover {{
-            background-color: {colors["accent_hover"]};
-        }}
+    MergeTool QPushButton {{
+        background-color: {colors["accent_primary"]};
+        color: {colors["text_accent"]};
+        border: 1px solid {colors["border_color"]};
+        border-radius: 4px;
+        padding: 8px 12px;
+        min-height: 20px;
+    }}
 
-        MergeTool QPushButton:pressed {{
-            background-color: {colors["accent_hover"]};
-        }}
+    MergeTool QPushButton:hover {{
+        background-color: {colors["accent_hover"]};
+    }}
 
-        MergeTool #mode_button {{
-            padding: 6px 10px;
-        }}
-        
-        MergeTool #mode_button:checked {{
-            background-color: {colors["accent_primary"]};
-            color: {colors["text_accent"]};
-            border: 1px solid {colors["accent_primary"]};
-        }}
+    MergeTool QPushButton:pressed {{
+        background-color: {colors["accent_hover"]};
+    }}
 
-        MergeTool #export_button {{
-            font-weight: bold;
-            padding: 10px 20px;
-        }}
+    MergeTool #mode_button {{
+        padding: 6px 10px;
+    }}
+    
+    MergeTool #mode_button:checked {{
+        background-color: {colors["accent_primary"]};
+        color: {colors["text_accent"]};
+        border: 1px solid {colors["accent_primary"]};
+    }}
 
-        MergeTool QLineEdit, MergeTool QComboBox, MergeTool QListWidget {{
-            background-color: {colors["bg_secondary"]};
-            border: 1px solid {colors["border_color"]};
-            border-radius: 4px;
-            padding: 6px;
-            color: {colors["text_primary"]};
-        }}
-        
-        MergeTool QLineEdit:focus, MergeTool QComboBox:focus, MergeTool QListWidget:focus {{
-            border: 1px solid {colors["accent_primary"]};
-        }}
-        
-        MergeTool #time_input {{
-             font-family: "Courier New", "Lucida Console", monospace;
-        }}
+    MergeTool #export_button {{
+        font-weight: bold;
+        padding: 10px 20px;
+    }}
 
-        MergeTool QFrame#separator {{
-            background-color: {colors["border_color"]};
-            height: 1px;
-            border: none;
-        }}
+    MergeTool QLineEdit, MergeTool QComboBox, MergeTool QListWidget {{
+        background-color: {colors["bg_secondary"]};
+        border: 1px solid {colors["border_color"]};
+        border-radius: 4px;
+        padding: 6px;
+        color: {colors["text_primary"]};
+    }}
+    
+    MergeTool QLineEdit:focus, MergeTool QComboBox:focus, MergeTool QListWidget:focus {{
+        border: 1px solid {colors["accent_primary"]};
+    }}
+    
+    MergeTool #time_input {{
+            font-family: "Courier New", "Lucida Console", monospace;
+    }}
 
-        MergeTool QCheckBox::indicator {{
-            width: 18px;
-            height: 18px;
-        }}
-        
-        MergeTool QCheckBox::indicator:unchecked {{
-            background-color: {colors["bg_secondary"]};
-            border: 1px solid {colors["border_color"]};
-            border-radius: 4px;
-        }}
+    MergeTool QFrame#separator {{
+        background-color: {colors["border_color"]};
+        height: 1px;
+        border: none;
+    }}
 
-        MergeTool QCheckBox::indicator:checked {{
-            background-color: {colors["accent_primary"]};
-            border: 1px solid {colors["accent_primary"]};
-            image: url(check-icon.svg); /* A checkmark icon would be needed */
-        }}
+    MergeTool QCheckBox::indicator {{
+        width: 18px;
+        height: 18px;
+    }}
+    
+    MergeTool QCheckBox::indicator:unchecked {{
+        background-color: {colors["bg_secondary"]};
+        border: 1px solid {colors["border_color"]};
+        border-radius: 4px;
+    }}
 
-        MergeTool QComboBox::drop-down {{
-            border: none;
-        }}
-    """
+    MergeTool QCheckBox::indicator:checked {{
+        background-color: {colors["accent_primary"]};
+        border: 1px solid {colors["accent_primary"]};
+        image: url(check-icon.svg); /* A checkmark icon would be needed */
+    }}
+
+    MergeTool QComboBox::drop-down {{
+        border: none;
+    }}
+"""

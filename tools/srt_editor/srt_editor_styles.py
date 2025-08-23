@@ -20,24 +20,23 @@ HIGHLIGHTING_COLORS = {
     }
 }
 
-def get_stylesheet(colors):
-    """
-    Returns the QSS stylesheet for the SrtEditorTool widgets.
-    'colors' is the main theme dictionary from the style_manager.
-    """
-    return f"""
-        /* --- Styles for SrtEditorTool --- */
+# A theme-agnostic template for the Merge tool's stylesheet.
+# The placeholders like {bg_primary}, {text_primary}, etc., will be
+# filled in by the StyleManager at runtime with the current theme's colors.
 
-        SrtEditorTool > QPlainTextEdit {{
-            background-color: {colors["bg_tertiary"]};
-            color: {colors["text_primary"]}; /* This is the default text color */
-            border: 1px solid {colors["border_color"]};
-            border-radius: 5px;
-            padding: 5px;
-            font-family: Consolas, "Courier New", monospace;
-        }}
+STYLE_TEMPLATE = """
+    /* --- Styles for SrtEditorTool --- */
 
-        SrtEditorTool > QWidget > QPushButton {{
-            margin-bottom: 5px; /* Add some space between buttons */
-        }}
-    """
+    SrtEditorTool > QPlainTextEdit {{
+        background-color: {colors["bg_tertiary"]};
+        color: {colors["text_primary"]}; /* This is the default text color */
+        border: 1px solid {colors["border_color"]};
+        border-radius: 5px;
+        padding: 5px;
+        font-family: Consolas, "Courier New", monospace;
+    }}
+
+    SrtEditorTool > QWidget > QPushButton {{
+        margin-bottom: 5px; /* Add some space between buttons */
+    }}
+"""

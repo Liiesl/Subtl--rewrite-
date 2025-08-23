@@ -1,17 +1,16 @@
 # tools/split/styles.py
 
-def get_stylesheet(colors):
-    """
-    Returns the stylesheet for the SplitTool placeholder.
-    'colors' is a dictionary of the current theme's colors, available for future use.
-    """
-    return f"""
-        /* --- Styles for SplitTool Placeholder --- */
+# A theme-agnostic template for the Merge tool's stylesheet.
+# The placeholders like {bg_primary}, {text_primary}, etc., will be
+# filled in by the StyleManager at runtime with the current theme's colors.
 
-        SplitTool #placeholder_label {{
-            font-size: 18px;
-            qproperty-alignment: 'AlignCenter';
-            font-weight: bold;
-            color: {colors["text_primary"]};
-        }}
-    """
+STYLE_TEMPLATE = """
+    /* --- Styles for SplitTool Placeholder --- */
+
+    SplitTool #placeholder_label {{
+        font-size: 18px;
+        qproperty-alignment: 'AlignCenter';
+        font-weight: bold;
+        color: {colors["text_primary"]};
+    }}
+"""
