@@ -61,7 +61,7 @@ jobs:
           # The name of the artifact will be 'Subtle-Windows-[tag]'
           name: Subtle-Windows-${{ github.ref_name }}
           # The path is the output folder created by Nuitka
-          path: main.dist/
+          path: build/main.dist/
           retention-days: 7
 
       # 6. Create Installer for Windows
@@ -149,7 +149,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Subtle-Ubuntu-${{ github.ref_name }}
-          path: main.dist/
+          path: build/main.dist/
           retention-days: 7
 
   build-macos:
@@ -195,5 +195,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Subtle-macOS-${{ github.ref_name }}
-          path: main.dist/
+          path: build/main.dist/
           retention-days: 7
