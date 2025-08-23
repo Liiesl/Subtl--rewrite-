@@ -51,6 +51,8 @@ jobs:
           include-plugin-directory: tools
           # Include the 'assets' folder as a data file in the build output
           include-data-dir: assets=assets
+          # For Windows, create a GUI application without a console window
+          disable-console: true
 
       # 5. Upload the compiled application as a build artifact
       - name: Upload Standalone Artifact
@@ -102,4 +104,96 @@ jobs:
         with:
           name: Subtle-Windows-${{ github.ref_name }}-Installer
           path: 'Subtl-${{ github.ref_name }}-Installer.exe'
+          retention-days: 7
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Check out the repository code
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # 2. Set up a specific Python version
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. Install project dependencies from requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Add this step before the 'Build with Nuitka' step in each job
+      - name: Set Version from Tag
+        run: echo "VERSION=${{ github.ref_name }}" | sed 's/v//' >> $GITHUB_ENV
+        shell: bash
+
+      # 4. Run the Nuitka-Action to compile the application
+      - name: Build with Nuitka
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          script-name: main.py
+          company-name: "Liiesl"
+          product-name: "Subtl"
+          # Use the modified version environment variable
+          file-version: ${{ env.VERSION }}
+          product-version: ${{ env.VERSION }}
+          file-description: "Subtl. An app for manipulating/editing subtitles."
+          mode: standalone
+          enable-plugins: pyside6
+          include-plugin-directory: tools
+          include-data-dir: assets=assets
+
+      # 5. Upload the compiled application as a build artifact
+      - name: Upload Standalone Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Subtle-Ubuntu-${{ github.ref_name }}
+          path: build/main.dist/
+          retention-days: 7
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      # 1. Check out the repository code
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # 2. Set up a specific Python version
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. Install project dependencies from requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Add this step before the 'Build with Nuitka' step in each job
+      - name: Set Version from Tag
+        run: echo "VERSION=${{ github.ref_name }}" | sed 's/v//' >> $GITHUB_ENV
+        shell: bash
+
+      # 4. Run the Nuitka-Action to compile the application
+      - name: Build with Nuitka
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          script-name: main.py
+          company-name: "Liiesl"
+          product-name: "Subtl"
+          # Use the modified version environment variable
+          file-version: ${{ env.VERSION }}
+          product-version: ${{ env.VERSION }}
+          file-description: "Subtl. An app for manipulating/editing subtitles."
+          mode: standalone
+          enable-plugins: pyside6
+          include-plugin-directory: tools
+          include-data-dir: assets=assets
+
+      # 5. Upload the compiled application as a build artifact
+      - name: Upload Standalone Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Subtle-macOS-${{ github.ref_name }}
+          path: build/main.dist/
           retention-days: 7
