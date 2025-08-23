@@ -7,14 +7,8 @@ on:
       - 'v*' # Recommended to trigger on tags like v1.0, v1.2.3, etc.
 
 jobs:
-  build:
-    # Use a matrix strategy to build on Windows, Ubuntu, and macOS.
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-
-    runs-on: ${{ matrix.os }}
-
+  build-windows:
+    runs-on: windows-latest
     steps:
       # 1. Check out the repository code
       - name: Check out repository
@@ -55,19 +49,18 @@ jobs:
           # For Windows, create a GUI application without a console window
           disable-console: true
 
-      # 5. Upload the compiled application as a build artifact for all OS
+      # 5. Upload the compiled application as a build artifact
       - name: Upload Standalone Artifact
         uses: actions/upload-artifact@v4
         with:
-          # The name of the artifact will be 'Subtle-[OS]-[tag]'
-          name: Subtle-${{ runner.os }}-${{ github.ref_name }}
+          # The name of the artifact will be 'Subtle-Windows-[tag]'
+          name: Subtle-Windows-${{ github.ref_name }}
           # The path is the output folder created by Nuitka
           path: main.dist/
           retention-days: 7
 
       # 6. Create Installer for Windows
       - name: Install NSIS and create installer script
-        if: runner.os == 'Windows'
         run: |
           choco install nsis
           New-Item -ItemType File -Path installer.nsi -Value @"
@@ -96,16 +89,94 @@ jobs:
           EXE_NAME: "main.exe"
 
       - name: Run NSIS
-        if: runner.os == 'Windows'
         uses: joncloud/makensis-action@v4
         with:
           script-file: installer.nsi
 
       # 7. Upload the Windows Installer as a separate artifact
       - name: Upload Windows Installer
-        if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: Subtle-${{ runner.os }}-${{ github.ref_name }}-Installer
+          name: Subtle-Windows-${{ github.ref_name }}-Installer
           path: 'Subtl-${{ github.ref_name }}-Installer.exe'
+          retention-days: 7
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Check out the repository code
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # 2. Set up a specific Python version
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. Install project dependencies from requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # 4. Run the Nuitka-Action to compile the application
+      - name: Build with Nuitka
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          script-name: main.py
+          company-name: "Liiesl"
+          product-name: "Subtl"
+          file-version: ${{ github.ref_name }}
+          product-version: ${{ github.ref_name }}
+          file-description: "Subtl. An app for manipulating/editing subtitles."
+          mode: standalone
+          enable-plugins: pyside6
+          include-plugin-directory: tools
+          include-data-dir: assets=assets
+
+      # 5. Upload the compiled application as a build artifact
+      - name: Upload Standalone Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Subtle-Ubuntu-${{ github.ref_name }}
+          path: main.dist/
+          retention-days: 7
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      # 1. Check out the repository code
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # 2. Set up a specific Python version
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. Install project dependencies from requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # 4. Run the Nuitka-Action to compile the application
+      - name: Build with Nuitka
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          script-name: main.py
+          company-name: "Liiesl"
+          product-name: "Subtl"
+          file-version: ${{ github.ref_name }}
+          product-version: ${{ github.ref_name }}
+          file-description: "Subtl. An app for manipulating/editing subtitles."
+          mode: standalone
+          enable-plugins: pyside6
+          include-plugin-directory: tools
+          include-data-dir: assets=assets
+
+      # 5. Upload the compiled application as a build artifact
+      - name: Upload Standalone Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Subtle-macOS-${{ github.ref_name }}
+          path: main.dist/
           retention-days: 7
