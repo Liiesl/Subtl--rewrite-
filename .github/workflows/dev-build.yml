@@ -8,20 +8,24 @@ on:
       - 'dev-macos'
 
 jobs:
-  call-reusable-build:
-    # This job now has two steps
-    runs-on: ubuntu-latest # A runner is needed for the first step
+  # JOB 1: Determine the parameters for the build
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      os_name: ${{ steps.get_os.outputs.os_name }}
+      version_tag: ${{ github.ref_name }}
     steps:
-      # Step 1: Extract the OS name from the branch and set it as an output
       - name: Set OS from branch name
-        id: get_os # Give the step an ID to reference its outputs
+        id: get_os
         run: echo "os_name=${GITHUB_REF_NAME#dev-}" >> $GITHUB_OUTPUT
 
-      # Step 2: Call the reusable workflow using the output from the previous step
-      - name: Call Reusable Build Workflow
-        uses: ./.github/workflows/reusable-build.yml
-        with:
-          os: ${{ steps.get_os.outputs.os_name }} # Use the output here
-          version_tag: ${{ github.ref_name }}
-          environment_name: 'Development'
-          secrets: inherit
+  # JOB 2: Call the workflow using the parameters from the setup job
+  call-build:
+    needs: setup
+    # CORRECTED LINE: Use the full, dynamic path to the workflow in your repository
+    uses: ${{ github.repository }}/.github/workflows/build.yml@${{ github.ref }}
+    with:
+      os: ${{ needs.setup.outputs.os_name }}
+      version_tag: ${{ needs.setup.outputs.version_tag }}
+      environment_name: 'Development'
+    secrets: inherit
